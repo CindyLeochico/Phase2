@@ -1,6 +1,3 @@
-
-
-
 function search() {
   window.location.href = "coworker-propertySearch.html";
 }
@@ -9,23 +6,24 @@ function viewRentedWorkspaceBtn() {
   window.location.href = "viewRentedWorkspace.html";
 }
 
-
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
   populatePropertyTable();
 });
 
 function populatePropertyTable() {
   // Make a request to fetch property data from the backend API
   fetch("http://localhost:3000/properties")
-    .then(response => {
+    .then((response) => {
       if (!response.ok) {
         throw new Error("Failed to fetch property data");
       }
       return response.json();
     })
-    .then(propertyData => {
+    .then((propertyData) => {
       // Once data is fetched, populate the property table
-      var propertyTable = document.getElementById("propertyTable").getElementsByTagName('tbody')[0];
+      var propertyTable = document
+        .getElementById("propertyTable")
+        .getElementsByTagName("tbody")[0];
       propertyTable.innerHTML = ""; // Clear existing data
 
       if (propertyData.length === 0) {
@@ -33,7 +31,7 @@ function populatePropertyTable() {
         return;
       }
 
-      propertyData.forEach(function(property) {
+      propertyData.forEach(function (property) {
         var row = propertyTable.insertRow();
         row.innerHTML = `
         <td class="hidden">${property.propertyId}</td>
@@ -42,18 +40,20 @@ function populatePropertyTable() {
           <td>${property.squarefeet}</td>
           <td>${property.parking}</td>
           <td>${property.publicTranspo}</td>
-          <td><button class="button" onclick="viewAvailableWorkspaces(${property.propertyId})">View Available Workspaces</button></td>
+          <td><button onclick="viewAvailableWorkspaces(${property.propertyId})">View Available Workspaces</button></td>
         `;
       });
     })
-    .catch(error => {
+    .catch((error) => {
       console.error("Error fetching property data:", error);
     });
 }
 
 function viewAvailableWorkspaces(propertyId) {
   var modal = document.getElementById("workspaceModal");
-  var workspaceDetails = workspaceData.filter(workspace => workspace.propertyId === propertyId);
+  var workspaceDetails = workspaceData.filter(
+    (workspace) => workspace.propertyId === propertyId
+  );
 
   var modalContent = modal.getElementsByClassName("modal-content")[0];
   modalContent.innerHTML = ""; // Clear existing data
@@ -75,7 +75,7 @@ function viewAvailableWorkspaces(propertyId) {
   `;
 
   var body = table.createTBody();
-  workspaceDetails.forEach(function(workspace) {
+  workspaceDetails.forEach(function (workspace) {
     var row = body.insertRow();
     row.innerHTML = `
       <td>${workspace.workspaceId}</td>
@@ -95,15 +95,15 @@ function viewAvailableWorkspaces(propertyId) {
   modal.style.display = "block";
 
   // Close the workspace modal when clicking outside
-  modal.onclick = function(event) {
+  modal.onclick = function (event) {
     if (!event.target.closest(".modal-content")) {
       modal.style.display = "none";
     }
   };
 
   // Add event listener for enlarging workspace images
-  document.querySelectorAll(".workspace-image").forEach(image => {
-    image.addEventListener("click", function() {
+  document.querySelectorAll(".workspace-image").forEach((image) => {
+    image.addEventListener("click", function () {
       var enlargedImageModal = document.getElementById("imageModal");
       var enlargedImage = document.getElementById("enlargedImage");
 
@@ -111,7 +111,7 @@ function viewAvailableWorkspaces(propertyId) {
       enlargedImageModal.style.display = "block";
 
       // Close the enlarged image modal when clicking outside the image
-      enlargedImageModal.onclick = function(event) {
+      enlargedImageModal.onclick = function (event) {
         if (event.target == enlargedImageModal) {
           enlargedImageModal.style.display = "none";
         }
@@ -120,6 +120,6 @@ function viewAvailableWorkspaces(propertyId) {
   });
 }
 
-document.getElementById("logoutBtn").addEventListener("click", function() {
-  window.location.href = "index.html"; 
+document.getElementById("logoutBtn").addEventListener("click", function () {
+  window.location.href = "index.html";
 });

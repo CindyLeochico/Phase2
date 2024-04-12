@@ -6,8 +6,7 @@ const { client, run } = require("./connect");
 const { ObjectId } = require("mongodb");
 const registrationController = require("./controllers/registrationController");
 
-const Property = require('./models/propertyModel');
-
+const Property = require("./models/propertyModel");
 
 const app = express();
 const path = require("path");
@@ -20,24 +19,24 @@ app.use("/api", userRoutes); // Mount the userRoutes on the /api path
 app.post("/register", async (req, res) => {
   const formData = req.body;
   try {
-    const db = client.db("CollabSpacedb"); 
-    const collection = db.collection("Register"); 
+    const db = client.db("CollabSpacedb");
+    const collection = db.collection("Register");
     const result = await collection.insertOne(formData);
     res.status(201).json(result);
   } catch (error) {
-    // login
-    app.post("/login", registrationController.loginUser);
     res.status(500).json({ message: "Failed to register user", error });
   }
 });
 
+// login
+app.post("/login", registrationController.loginUser);
 // API ENDPOINT TO ADD A NEW PROPERTY
 app.post("/add-property", async (req, res) => {
   // const propertyData = req.body; // Get property data from request body
   const propertyData = { ...req.body, createdAt: new Date() };
   try {
-    const db = client.db("CollabSpacedb"); 
-    const collection = db.collection("Properties"); 
+    const db = client.db("CollabSpacedb");
+    const collection = db.collection("Properties");
     const result = await collection.insertOne(propertyData);
     res.status(201).json({ message: "Property added successfully", result });
   } catch (error) {
@@ -173,7 +172,6 @@ app.get("/workspaces/:id", async (req, res) => {
   }
 });
 
-
 // API ENDPOINT TO UPDATE A WORKSPACE
 app.put("/workspaces/:id", async (req, res) => {
   const { id } = req.params;
@@ -235,7 +233,6 @@ app.get("/workspaces", async (req, res) => {
     res.status(500).json({ message: "Failed to fetch workspaces", error });
   }
 });
-
 
 // API ENDPOINT TO FETCH ALL WORKSPACES FOR A PROPERTY
 app.get("/properties/:propertyId/workspaces", async (req, res) => {

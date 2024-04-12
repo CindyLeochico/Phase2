@@ -1,7 +1,14 @@
+//const bcrypt = require("bcrypt");
 const { client } = require("../connect");
+
+// Registration
 exports.createUser = async (req, res) => {
   try {
+    // Extract user data from request body
     const { fullname, phone, email, role, username, password } = req.body;
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = {
       fullname,
@@ -9,7 +16,7 @@ exports.createUser = async (req, res) => {
       email,
       role,
       username,
-      password, // Store the plaintext password (not secure)
+      password,
     };
 
     const db = client.db("CollabSpacedb");
@@ -26,7 +33,7 @@ exports.createUser = async (req, res) => {
   }
 };
 
-//login
+// Login
 exports.loginUser = async (req, res) => {
   const { username, password } = req.body;
 
@@ -49,16 +56,16 @@ exports.loginUser = async (req, res) => {
       console.log("Passwords match, login successful.");
       const { password, ...userWithoutPassword } = user;
       return res
-      .status(200)
-      .json({ message: "Login successful", user: userWithoutPassword });
-  } else {
-    console.log("Passwords do not match.");
-    return res.status(401).json({ message: "Invalid username or password." });
+        .status(200)
+        .json({ message: "Login successful", user: userWithoutPassword });
+    } else {
+      console.log("Passwords do not match.");
+      return res.status(401).json({ message: "Invalid username or password." });
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
-} catch (error) {
-  console.error("Login error:", error);
-  return res
-    .status(500)
-    .json({ message: "Server error", error: error.message });
-}
 };
