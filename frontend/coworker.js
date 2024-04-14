@@ -34,13 +34,12 @@ function populatePropertyTable() {
       propertyData.forEach(function (property) {
         var row = propertyTable.insertRow();
         row.innerHTML = `
-        <td class="hidden">${property.propertyId}</td>
           <td>${property.address}</td>
           <td>${property.neighborhood}</td>
           <td>${property.squarefeet}</td>
           <td>${property.parking}</td>
           <td>${property.publicTranspo}</td>
-          <td><button onclick="viewAvailableWorkspaces(${property.propertyId})">View Available Workspaces</button></td>
+          <td><button onclick="viewAvailableWorkspaces('${property._id}')">View Available Workspaces</button></td>
         `;
       });
     })
@@ -50,76 +49,73 @@ function populatePropertyTable() {
 }
 
 function viewAvailableWorkspaces(propertyId) {
-  var modal = document.getElementById("workspaceModal");
-  var workspaceDetails = workspaceData.filter(
-    (workspace) => workspace.propertyId === propertyId
-  );
+  fetch(
+    `http://localhost:3000/properties/${encodeURIComponent(
+      propertyId
+    )}/workspaces`
+  )
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to fetch workspaces");
+      }
+      return response.json();
+    })
+    .then((workspaceData) => {
+      const modal = document.getElementById("workspaceModal");
+      const modalContent = modal.getElementsByClassName("modal-content")[0];
+      modalContent.innerHTML = ""; // Clear existing data
 
-  var modalContent = modal.getElementsByClassName("modal-content")[0];
-  modalContent.innerHTML = ""; // Clear existing data
+      const table = document.createElement("table");
+      table.classList.add("workspace-table");
 
-  var table = document.createElement("table");
-  table.classList.add("workspace-table");
+      const header = table.createTHead();
+      const headerRow = header.insertRow();
+      headerRow.innerHTML = `
+              <th>Type</th>
+              <th>Capacity</th>
+              <th>Smoking Allowed</th>
+              <th>Available</th>
+              <th>Term</th>
+              <th>Price</th>
+              <th>Contact Info</th>
+              <th>Image</th>
+          `;
 
-  var header = table.createTHead();
-  var headerRow = header.insertRow();
-  headerRow.innerHTML = `
-    <th>Type</th>
-    <th>Capacity</th>
-    <th>Smoking Allowed</th>
-    <th>Available</th>
-    <th>Term</th>
-    <th>Price</th>
-    <th>Contact Info</th>
-    <th>Image</th>
-  `;
+      const body = table.createTBody();
+      workspaceData.forEach((workspace) => {
+        const row = body.insertRow();
+        row.innerHTML = `
+                  <td>${workspace.type}</td>
+                  <td>${workspace.capacity}</td>
+                  <td>${workspace.smoking}</td>
+                  <td>${workspace.available}</td>
+                  <td>${workspace.term}</td>
+                  <td>${workspace.price}</td>
+                  <td class="email-cell"><span class="email">${workspace.contactInfo}</span></td>
+                  <td><img class="workspace-image" src="${workspace.imageURL}" alt="Workspace Image" style="max-width: 100px; max-height: 100px; cursor: pointer;"></td>
+              `;
+      });
 
-  var body = table.createTBody();
-  workspaceDetails.forEach(function (workspace) {
-    var row = body.insertRow();
-    row.innerHTML = `
-      <td>${workspace.workspaceId}</td>
-      <td>${workspace.type}</td>
-      <td>${workspace.capacity}</td>
-      <td>${workspace.smoking}</td>
-      <td>${workspace.available}</td>
-      <td>${workspace.term}</td>
-      <td>${workspace.price}</td>
-      <td class="email-cell"><span class="email">${workspace.contactInfo}</span></td>
-      <td><img class="workspace-image" src="${workspace.imageURL}" alt="Workspace Image" style="max-width: 100px; max-height: 100px; cursor: pointer;"></td>
-    `;
-  });
-
-  modalContent.appendChild(table);
-
-  modal.style.display = "block";
-
-  // Close the workspace modal when clicking outside
-  modal.onclick = function (event) {
-    if (!event.target.closest(".modal-content")) {
-      modal.style.display = "none";
-    }
-  };
-
-  // Add event listener for enlarging workspace images
-  document.querySelectorAll(".workspace-image").forEach((image) => {
-    image.addEventListener("click", function () {
-      var enlargedImageModal = document.getElementById("imageModal");
-      var enlargedImage = document.getElementById("enlargedImage");
-
-      enlargedImage.src = this.src;
-      enlargedImageModal.style.display = "block";
-
-      // Close the enlarged image modal when clicking outside the image
-      enlargedImageModal.onclick = function (event) {
-        if (event.target == enlargedImageModal) {
-          enlargedImageModal.style.display = "none";
-        }
-      };
+      modalContent.appendChild(table);
+      modal.style.display = "block";
+    })
+    .catch((error) => {
+      console.error("Error fetching workspace data:", error);
     });
-  });
 }
 
 document.getElementById("logoutBtn").addEventListener("click", function () {
   window.location.href = "index.html";
 });
+
+function closeModal() {
+  document.getElementById("workspaceModal").style.display = "none";
+}
+
+// This function will be called when you click outside of the modal
+window.onclick = function (event) {
+  const modal = document.getElementById("workspaceModal");
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+};

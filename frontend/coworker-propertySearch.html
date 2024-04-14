@@ -27,24 +27,22 @@
         <div class="searchform">
           <div class="form-group">
             <label for="address">Address: </label>
-            <input type="text" id="address" name="address" />
+            <input type="text" id="address" name="address" placeholder="Enter keyword" />
           </div>
           <div class="form-group">
             <label for="neighborhood">Neighborhood: </label>
             <select id="neighborhood" name="neighborhood">
               <option value="" disabled selected>Select</option>
               <option value="Downtown">Downtown</option>
-              <option value="Industrial">Industrial</option>
-              <option value="Residential">Residential</option>
+              <option value="North East">North East</option>
+              <option value="North West">North West</option>
+              <option value="South East">South East</option>
+              <option value="South West">South West</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="minSquareFeet">Min Square Feet: </label>
-            <input type="number" id="minSquareFeet" placeholder="Min Square Feet">
-          </div>
-          <div class="form-group">
-            <label for="maxSquareFeet">Max Square Feet: </label>
-            <input type="number" id="maxSquareFeet" placeholder="Max Square Feet">
+            <label for="squarefeet">Square Feet: </label>
+            <input type="number" id="squarefeet" name="squarefeet" placeholder="Greater than or equal to">
           </div>
           <div class="form-group">
             <label for="parking">Parking: </label>
@@ -55,8 +53,8 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="publicTranspo">Public Transportation: </label>
-            <select id="publicTranspo" name="publicTranspo">
+            <label for="publictranspo">Public Transportation: </label>
+            <select id="publictranspo" name="publictranspo">
               <option value="" disabled selected>Select</option>
               <option value="Yes">Yes</option>
               <option value="No">No</option>
@@ -65,12 +63,8 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label for="minCapacity">Min Seat Capacity: </label>
-            <input type="number" id="minCapacity" placeholder="Min Seat Capacity">
-          </div>
-          <div class="form-group">
-            <label for="maxCapacity">Max Seat Capacity: </label>
-            <input type="number" id="maxCapacity" placeholder="Max Seat Capacity">
+            <label for="capacity">Seat Capacity: </label>
+            <input type="number" id="capacity" name="capacity" placeholder="Greater than or equal">
           </div>
           <div class="form-group">
             <label for="smoking">Smoking: </label>
@@ -81,12 +75,8 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="fromDate">Available From:</label>
-            <input type="date" id="fromDate" name="fromDate">
-          </div>
-          <div class="form-group">
-            <label for="toDate">Available To:</label>
-            <input type="date" id="toDate" name="toDate">
+            <label for="dateavailable">Date Available:</label>
+            <input type="date" id="dateavailable" name="dateavailable">
           </div>
           <div class="form-group">
             <label for="term">Lease Term: </label>
@@ -98,12 +88,8 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="minPrice">Min Price: </label>
-            <input type="number" id="minPrice" placeholder="Min Price">
-          </div>
-          <div class="form-group">
-            <label for="maxPrice">Max Price: </label>
-            <input type="number" id="maxPrice" placeholder="Max Price">
+            <label for="price">Price: </label>
+            <input type="number" id="price" name="price" placeholder="Greater than or qual to">
           </div>
         </div>
       </div>
@@ -120,14 +106,9 @@
     <br>
     <h3>Search Results:</h3><br>
 
-    <div class="sort-button-container">
-      <button id="sortButton" onclick="SortTable('Neighborhood')">Sort by Neighborhood</button>
-    </div>
-
     <table id="propertyTable">
       <thead>
         <tr>
-          <th>Property ID</th>
           <th>Address</th>
           <th>Neighborhood</th>
           <th>Square Feet</th>
@@ -136,13 +117,34 @@
           <th>Action</th>
         </tr>
       </thead>
-      <tbody id="propertyDataTable">
-        <!-- Table rows will be added dynamically here -->
+      <tbody id="propertyTableBody">
       </tbody>
     </table>
 
-    <br><br>
+    <br /><br />
+
+    <table id="workspaceTable">
+      <div>
+        <h3>Workspace details</h3>
+      </div>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Seat Capacity</th>
+          <th>Allow Smoking</th>
+          <th>Date Available</th>
+          <th>Lease Term</th>
+          <th>Price</th>
+          <th>Image URL</th>
+          <th>Contact Information</th>
+        </tr>
+      </thead>
+
+      <tbody id="workspaceTableBody"></tbody>
+    </table>
   </section>
+
+<br/><br/>
 
   <footer>
     <p class="center">

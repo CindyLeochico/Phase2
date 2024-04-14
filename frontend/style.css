@@ -1,10 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap");
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
 }
 
 body {
@@ -16,7 +17,7 @@ body {
 }
 
 header {
-  background-color: #D48166;
+  background-color: #d48166;
   color: white;
   text-align: center;
   padding: 5px;
@@ -70,7 +71,7 @@ section {
 }
 
 footer {
-  background-color: #D48166;
+  background-color: #d48166;
   color: white;
   text-align: center;
   padding: 10px;
@@ -79,9 +80,8 @@ footer {
   width: 100%;
 }
 
-
 header {
-  background-color: #D48166;
+  background-color: #d48166;
   color: rgb(255, 255, 255);
   text-align: right;
   padding: 5px;
@@ -113,11 +113,11 @@ td {
   padding: 10px;
   margin-left: auto;
   margin-right: auto;
-  color: #373A36;
+  color: #373a36;
 }
 
 tr:nth-child(even) {
-  background-color: #f2f2f2
+  background-color: #f2f2f2;
 }
 
 .button {
@@ -143,7 +143,6 @@ tr:nth-child(even) {
   display: flex;
   justify-content: center;
   align-items: center;
-
 }
 
 .login-form {
@@ -191,8 +190,6 @@ tr:nth-child(even) {
 .login-error-message {
   text-align: center;
 }
-
-
 
 /*CSS for Workspace Search and Co Worker Dashboard*/
 
@@ -286,7 +283,7 @@ tr:nth-child(even) {
 }
 
 #rateForm button[type="submit"] {
-  background-color: #BA5A31;
+  background-color: #ba5a31;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -295,13 +292,11 @@ tr:nth-child(even) {
 }
 
 #rateForm button[type="submit"]:hover {
-  background-color: #BA5A31;
+  background-color: #ba5a31;
 }
-
 
 .rateButton {
   background-color: #c66747;
-  ;
   border: none;
   color: white;
   padding: 8px 20px;
@@ -436,7 +431,6 @@ tr:nth-child(even) {
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
-
 
 .searchbtn {
   background-color: #c66747;
@@ -576,7 +570,14 @@ table img {
   /* Box shadow for a nice effect */
 }
 
-
-
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  color: black; /* Make it stand out for testing */
+}
 
 /* End of CSS for CoWorker */

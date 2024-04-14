@@ -1,168 +1,175 @@
-// Declare tableBody globally
-var tableBody;
+document.addEventListener("DOMContentLoaded", function (event) {
+  event.preventDefault();
 
-document.addEventListener("DOMContentLoaded", function() {
-    tableBody = document.getElementById("propertyDataTable");
-    var searchBtn = document.getElementById("searchBtn");
+  const tableBody = document.getElementById("propertyTableBody");
+  tableBody.addEventListener("click", function (e) {
+    if (e.target && e.target.classList.contains("view-workspace")) {
+      const propertyId = e.target.getAttribute("data-id");
+      const address =
+        e.target.getAttribute("data-address") || "No address provided";
+      document.querySelector(
+        ".property-header h3 span"
+      ).textContent = `${address}`;
+      document.querySelector(".property-header h3 span").style.color = "red";
 
-    searchBtn.addEventListener("click", function (event) {
-        event.preventDefault();
-    
-        // Get input values
-        var addressInput = document.getElementById("address").value.toLowerCase();
-        var neighborhoodInput = document.getElementById("neighborhood").value.toLowerCase();
-        var minSquareFeetInput = parseInt(document.getElementById("minSquareFeet").value) || 0;
-        var maxSquareFeetInput = parseInt(document.getElementById("maxSquareFeet").value) || Infinity;
-        var parkingInput = document.getElementById("parking").value;
-        var publicTranspoInput = document.getElementById("publicTranspo").value;
-        var minCapacityInput = parseInt(document.getElementById("minCapacity").value) || 0;
-        var maxCapacityInput = parseInt(document.getElementById("maxCapacity").value) || Infinity;
-        var minPriceInput = parseFloat(document.getElementById("minPrice").value) || 0;
-        var maxPriceInput = parseFloat(document.getElementById("maxPrice").value) || Infinity;
-        var fromDate = document.getElementById("fromDate").value;
-        var toDate = document.getElementById("toDate").value;
-        var smokingInput = document.getElementById("smoking").value;
-        var termInput = document.getElementById("term").value;
+      fetchWorkspaceDetails(propertyId);
+    }
+  });
 
-        // Make AJAX request to backend to search properties and workspaces
-        fetch("http://localhost:3000/coworker-propertySearch", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                address: addressInput,
-                neighborhood: neighborhoodInput,
-                minSquareFeet: minSquareFeetInput,
-                maxSquareFeet: maxSquareFeetInput,
-                parking: parkingInput,
-                publicTranspo: publicTranspoInput,
-                minCapacity: minCapacityInput,
-                maxCapacity: maxCapacityInput,
-                minPrice: minPriceInput,
-                maxPrice: maxPriceInput,
-                fromDate: fromDate,
-                toDate: toDate,
-                smoking: smokingInput,
-                term: termInput
-            })
-        })
-        .then(response => response.json())
-        .then(filteredProperties => {
-            // Clear previous data
-            tableBody.innerHTML = "";
+  // EVENT LISTENER FOR SEARCH BUTTON
+  document.getElementById("searchBtn").addEventListener("click", function () {
+    const address = document.getElementById("address").value.trim();
+    const neighborhood = document.getElementById("neighborhood").value;
+    const squarefeet = document.getElementById("squarefeet").value;
+    const parking = document.getElementById("parking").value;
+    const publictranspo = document.getElementById("publictranspo").value;
+    const capacity = document.getElementById("capacity").value;
+    const smoking = document.getElementById("smoking").value;
+    const dateavailable = document.getElementById("dateavailable").value;
+    const term = document.getElementById("term").value;
+    const price = document.getElementById("price").value;
 
-            // Render filtered properties and their associated workspaces
-            if (filteredProperties.length > 0) {
-                filteredProperties.forEach(function (property) {
-                    var row = document.createElement("tr");
-                    row.innerHTML = `<td>${property.propertyId}</td><td>${property.address}</td>
-                    <td>${property.neighborhood}</td><td>${property.squareFeet}</td><td>${property.parking}</td>
-                    <td>${property.publicTranspo}</td><td><button class="viewWorkspaceBtn" data-id="${property.propertyId}">View Workspace</button></td>`;
-                    tableBody.appendChild(row);
+    const searchCriteria = {
+      address,
+      neighborhood,
+      squarefeet,
+      parking,
+      publictranspo,
+      capacity,
+      smoking,
+      dateavailable,
+      term,
+      price,
+    };
 
-                    // Render associated workspaces
-                    property.workspaces.forEach(function(workspace) {
-                        var workspaceRow = document.createElement("tr");
-                        workspaceRow.innerHTML = `<td>${workspace.workspaceId}</td><td>${workspace.type}</td>
-                        <td>${workspace.capacity}</td><td>${workspace.smoking}</td><td>${workspace.available}</td>
-                        <td>${workspace.term}</td><td>${workspace.price}</td>`;
-                        tableBody.appendChild(workspaceRow);
-                    });
-                });
-            } else {
-                var noDataRow = document.createElement("tr");
-                var noDataCell = document.createElement("td");
-                noDataCell.colSpan = 7;
-                noDataCell.textContent = "No property available";
-                noDataCell.style.textAlign = "center";
-                noDataRow.appendChild(noDataCell);
-                tableBody.appendChild(noDataRow);
-            }
-        })
-        .catch(error => {
-            console.error("Error searching properties:", error);
-        });
-    });
+    // Clear previous search results and messages
+    document.getElementById("propertyTableBody").innerHTML = "";
+    document.getElementById("searchBtn");
+    document.getElementById("clearFiltersBtn");
+    // document.getElementById("sortButton");
 
-    // Add event listener to handle clicks on the "View Workspace" button
-    tableBody.addEventListener("click", function(event) {
-        if (event.target.classList.contains("viewWorkspaceBtn")) {
-            var propertyId = event.target.dataset.id;
-            
-            // Redirect to coworker-workSpace.html with propertyId as query parameter
-            window.open("coworker-workSpace.html?propertyId=" + propertyId);
-        }
-    });
+    fetchSearchResults(searchCriteria);
+  });
 
-    // Function to sort the search results table by neighborhood
-    function SortTable(column) {
-        var table, rows, switching, i, x, y, shouldSwitch;
-        table = document.getElementById("propertyTable");
-        switching = true;
+  function fetchSearchResults(criteria) {
+    const queryParams = new URLSearchParams();
 
-        while (switching) {
-            switching = false;
-            rows = table.rows;
-
-            for (i = 1; i < rows.length - 1; i++) {
-                shouldSwitch = false;
-
-                x = rows[i].getElementsByTagName("td")[getColumnIndex(column)].innerText.toLowerCase();
-                y = rows[i + 1].getElementsByTagName("td")[getColumnIndex(column)].innerText.toLowerCase();
-
-                if (x > y) {
-                    shouldSwitch = true;
-                    break;
-                }
-            }
-
-            if (shouldSwitch) {
-                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                switching = true;
-            }
-        }
+    for (const key in criteria) {
+      if (criteria[key]) {
+        queryParams.append(key, criteria[key]);
+      }
     }
 
-    // Function to get the column index based on the column name
-    function getColumnIndex(columnName) {
-        var headers = document.getElementById("propertyTable").rows[0].cells;
-        for (var i = 0; i < headers.length; i++) {
-            if (headers[i].textContent.toLowerCase() === columnName.toLowerCase()) {
-                return i;
-            }
+    fetch(`/search-properties?${queryParams}`)
+      .then((response) => response.json())
+      .then((properties) => {
+        if (properties && properties.length > 0) {
+          populatePropertyTable(properties);
+        } else {
+          // Show no results message or clear table
+          document.getElementById("propertyTableBody").innerHTML =
+            '<tr><td colspan="7" style="text-align: center;">No property found.</td></tr>';
         }
-        return -1;
-    }
+      })
+      .catch((error) => console.error("Failed to fetch properties:", error));
+  }
 
-    // Add event listener to the sort button
-    var sortButton = document.getElementById("sortButton");
-    sortButton.addEventListener("click", function() {
-        SortTable("Neighborhood");
+  function populatePropertyTable(properties) {
+    const tableBody = document.getElementById("propertyTableBody");
+    tableBody.innerHTML = "";
+
+    properties.forEach((property) => {
+      let row = `<tr>
+          <td>${property.address}</td>
+          <td>${property.neighborhood}</td>
+          <td>${property.squarefeet}</td>
+          <td>${property.parking}</td>
+          <td>${property.publicTranspo}</td>
+          <td>
+              <button class="view-workspace" data-id="${
+                property._id
+              }" data-address="${
+        property.address || ""
+      }">View Workspace</button>
+          </td>
+        </tr>`;
+      tableBody.innerHTML += row;
     });
 
-    // Clear Filters Button Functionality
-    var clearFiltersBtn = document.getElementById("clearFiltersBtn");
-    clearFiltersBtn.addEventListener("click", function () {
-        document.getElementById("address").value = "";
-        document.getElementById("neighborhood").value = "";
-        document.getElementById("minSquareFeet").value = "";
-        document.getElementById("maxSquareFeet").value = "";
-        document.getElementById("parking").value = "";
-        document.getElementById("publicTranspo").value = "";
-        document.getElementById("minCapacity").value = "";
-        document.getElementById("maxCapacity").value = "";
-        document.getElementById("minPrice").value = "";
-        document.getElementById("maxPrice").value = "";
-        document.getElementById("fromDate").value = "";
-        document.getElementById("toDate").value = "";
-        document.getElementById("smoking").value = "";
-        document.getElementById("term").value = "";
-        tableBody.innerHTML = ""; // Clear the table content
+    // Add event listeners to all 'View Workspace' buttons
+    document.querySelectorAll(".view-workspace").forEach((button) => {
+      button.addEventListener("click", function () {
+        const propertyId = this.getAttribute("data-id");
+        const searchCriteria = getSearchCriteria(); // You need to call this function to get the criteria
+        fetchWorkspaceDetails(propertyId, searchCriteria); // Pass the criteria to the function
+      });
+    });
+  }
+
+  function fetchWorkspaceDetails(propertyId, searchCriteria) {
+    const queryParams = new URLSearchParams(searchCriteria).toString();
+    fetch(`/api/properties/${propertyId}/workspaces?${queryParams}`)
+      .then((response) => response.json())
+      .then((workspaces) => {
+        const workspaceBody = document.getElementById("workspaceTableBody");
+        workspaceBody.innerHTML = "";
+        if (workspaces.length === 0) {
+          workspaceBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">No workspace found based on the search criteria.</td></tr>`;
+        } else {
+          workspaces.forEach((workspace) => {
+            let workspaceRow = `<tr>
+                        <td>${workspace.type}</td>
+                        <td>${workspace.capacity}</td>
+                        <td>${workspace.smoking}</td>
+                        <td>${workspace.available}</td>
+                        <td>${workspace.term}</td>
+                        <td>${workspace.price}</td>
+                        <td>${workspace.imageURL || "No image"}</td>
+                        <td>${workspace.contactInfo}</td>
+                    </tr>`;
+            workspaceBody.innerHTML += workspaceRow;
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to fetch workspace details:", error);
+        workspaceBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Error fetching workspace details.</td></tr>`;
+      });
+  }
+
+  document
+    .getElementById("clearFiltersBtn")
+    .addEventListener("click", function () {
+      // Clear input fields
+      document.getElementById("address").value = "";
+      document.getElementById("neighborhood").selectedIndex = 0;
+      document.getElementById("squarefeet").value = "";
+      document.getElementById("parking").selectedIndex = 0;
+      document.getElementById("publictranspo").selectedIndex = 0;
+      document.getElementById("capacity").value = "";
+      document.getElementById("smoking").value = "";
+      document.getElementById("dateavailable").value = "";
+      document.getElementById("term").value = "";
+      document.getElementById("price").value = "";
+
+      document.getElementById("propertyTableBody").innerHTML = "";
+      document.getElementById("workspaceTableBody").innerHTML = "";
+      document.getElementById("searchMessage").style.display = "none";
+      document.querySelector(".property-header h3 span").textContent = "";
     });
 
-    // Function for Log Out Button
-    document.getElementById("logoutBtn").addEventListener("click", function() {
-        window.location.href = "index.html"; 
-    });
+  function getSearchCriteria() {
+    return {
+      capacity: document.getElementById("capacity").value,
+      smoking: document.getElementById("smoking").value, // Assuming this is an <input> or <select>
+      dateavailable: document.getElementById("dateavailable").value,
+      term: document.getElementById("term").value, // This should match the dropdown for lease term
+      price: document.getElementById("price").value,
+    };
+  }
+
+  // Function for Log Out Button
+  document.getElementById("logoutBtn").addEventListener("click", function () {
+    window.location.href = "index.html";
+  });
 });
