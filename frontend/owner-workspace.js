@@ -50,6 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       <td>${workspace.available}</td>
       <td>${workspace.term}</td>
       <td>${workspace.price}</td>
+      <td><img src="${workspace.imageURL}" alt="Workspace Image" style="width: 100px; height: auto;"></td>
       <td>
         <button class="editWorkspaceBtn" data-workspace-id="${workspace._id}">Edit</button>
         <button class="deleteBtn" data-workspace-id="${workspace._id}">Delete</button>

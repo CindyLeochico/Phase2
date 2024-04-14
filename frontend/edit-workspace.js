@@ -41,6 +41,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("available").value = workspaceData.available;
     document.getElementById("term").value = workspaceData.term;
     document.getElementById("price").value = workspaceData.price;
+    document.getElementById("contactInfo").value = workspaceData.contactInfo;
+    const propertyId = urlParams.get("propertyId");
+    document.getElementById("propertyId").value = propertyId;
   }
 
   // Handle form submission
@@ -55,7 +58,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         smoking: form.smoking.value,
         available: form.available.value,
         term: form.term.value,
-        price: form.price.value
+        price: form.price.value,
+        contactInfo: form.contactInfo.value
       };
 
       // Send updated workspace data to the backend API to update in the database
