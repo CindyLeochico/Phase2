@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const userRoutes = require("./routes/userRoutes");
 const { client, run } = require("./connect");
-const { ObjectId } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const registrationController = require("./controllers/registrationController");
 
 const Property = require("./models/propertyModel");
@@ -151,9 +151,32 @@ app.post("/add-workspace", async (req, res) => {
   }
 });
 
+function isValidObjectId(id) {
+  return ObjectId.isValid(id);
+}
+
+// API ENDPOINT TO FETCH ALL WORKSPACES FOR A PROPERTY
+app.get("/properties/:propertyId/workspaces", async (req, res) => {
+  const propertyId = req.params.propertyId;
+  try {
+    const db = client.db("CollabSpacedb");
+    const collection = db.collection("Workspaces");
+    const workspaces = await collection.find({ propertyId }).toArray();
+    res.status(200).json(workspaces);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch workspaces", error });
+  }
+});
+
 // API ENDPOINT THAT FETCHES A SINGLE WORKSPACE BY _ID
 app.get("/workspaces/:id", async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id;
+
+  if (!isValidObjectId(id)) {
+    return res.status(400).send("Invalid ID format");
+  }
+
   try {
     const db = client.db("CollabSpacedb");
     const collection = db.collection("Workspaces");
@@ -234,17 +257,133 @@ app.get("/workspaces", async (req, res) => {
   }
 });
 
+// API to get workspaces based on propertyId
+app.get("/workspaces/:propertyId", async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const collection = db.collection("Workspaces");
+    const workspaces = await collection
+      .find({ propertyId: parseInt(req.params.propertyId) })
+      .toArray();
+    res.status(200).json(workspaces);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  } finally {
+    await client.close();
+  }
+});
+
+// API ENDPOINT FOR SEARCH
+app.get("/search-properties", async (req, res) => {
+  try {
+    let propertiesQuery = {};
+
+    if (req.query.address)
+      propertiesQuery.address = { $regex: req.query.address, $options: "i" };
+
+    if (req.query.neighborhood) {
+      propertiesQuery.neighborhood = req.query.neighborhood;
+    }
+
+    if (req.query.squarefeet) {
+      propertiesQuery.squarefeet = { $gte: req.query.squarefeet };
+    }
+
+    if (req.query.parking) {
+      propertiesQuery.parking = req.query.parking;
+    }
+
+    if (req.query["publictranspo"]) {
+      propertiesQuery.publicTranspo = req.query["publictranspo"];
+    }
+
+    const db = client.db("CollabSpacedb");
+    let workspaceQuery = {};
+
+    if (req.query.capacity) {
+      workspaceQuery.capacity = { $gte: req.query.capacity };
+    }
+
+    if (req.query.smoking) {
+      workspaceQuery.smoking = req.query.smoking;
+    }
+
+    if (req.query.available) {
+      workspaceQuery.available = req.query.available;
+    }
+
+    if (req.query.term) {
+      workspaceQuery.term = req.query.term;
+    }
+
+    if (req.query.price) {
+      workspaceQuery.price = { $gte: req.query.price };
+    }
+
+    let matchingPropertyIds = [];
+
+    // If workspace-specific criteria are specified, find matching workspaces first
+    if (Object.keys(workspaceQuery).length > 0) {
+      const matchingWorkspaces = await db
+        .collection("Workspaces")
+        .find(workspaceQuery)
+        .toArray();
+      matchingPropertyIds = matchingWorkspaces.map((ws) => ws.propertyId);
+      // Adjust the properties query to only include properties with matching workspaces
+      propertiesQuery._id = {
+        $in: matchingPropertyIds.map((id) => new ObjectId(id)),
+      };
+    }
+
+    // Fetch matching properties based on updated query
+    const matchingProperties = await db
+      .collection("Properties")
+      .find(propertiesQuery)
+      .toArray();
+
+    res.json(matchingProperties);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error searching properties" });
+  }
+});
+
 // API ENDPOINT TO FETCH ALL WORKSPACES FOR A PROPERTY
-app.get("/properties/:propertyId/workspaces", async (req, res) => {
+app.get("/api/properties/:propertyId/workspaces", async (req, res) => {
   const { propertyId } = req.params;
+  let query = { propertyId: propertyId }; // Start with propertyId as the base query
+
+  // Additional filters based on query parameters
+  if (req.query.capacity) {
+    query.capacity = { $gte: req.query.capacity };
+  }
+  if (req.query.smoking) {
+    query.smoking = req.query.smoking;
+  }
+  if (req.query.available) {
+    query.available = new Date(req.query.available); // Ensure date format matches what's stored in DB
+  }
+  if (req.query.term) {
+    query.term = req.query.term;
+  }
+  if (req.query.price) {
+    query.price = { $gte: req.query.price };
+  }
   try {
     const db = client.db("CollabSpacedb");
     const collection = db.collection("Workspaces");
-    const workspaces = await collection.find({ propertyId }).toArray();
+    const workspaces = await collection.find(query).toArray();
+    if (workspaces.length === 0) {
+      return res.status(404).json({
+        message:
+          "No workspaces found for this property with specified criteria",
+      });
+    }
     res.status(200).json(workspaces);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to fetch workspaces", error });
+    console.error("Failed to fetch workspaces:", error);
+    res.status(500).json({ message: "Error fetching workspaces" });
   }
 });
 
