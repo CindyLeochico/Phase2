@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const multer = require("multer");
 const express = require("express");
 const userRoutes = require("./routes/userRoutes");
 const { client, run } = require("./connect");
@@ -10,6 +11,24 @@ const Property = require("./models/propertyModel");
 
 const app = express();
 const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../frontend/img"));
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+  fileFilter: function (req, file, cb) {
+    // Accept only jpg and png files
+    if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+      return cb(new Error("Only JPG and PNG files are allowed"));
+    }
+    cb(null, true);
+  },
+});
+
+const upload = multer({ storage: storage });
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 app.use(express.json());
@@ -129,21 +148,32 @@ app.delete("/properties/:id", async (req, res) => {
   }
 });
 
-// API ENDPOINT TO ADD A NEW WORKSPACE
-app.post("/add-workspace", async (req, res) => {
+// API ENDPOINT TO ADD A NEW WORKSPACE WITH IMAGE
+app.post("/add-workspace", upload.single("image"), async (req, res) => {
   const workspaceData = req.body; // Get workspace data from request body
+  const imageFile = req.file; // Get uploaded image file
+
   try {
-    // Ensure that 'client' is initialized and connected to your MongoDB database
+    if (!imageFile) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
+
+    const workspaceWithImage = {
+      ...workspaceData,
+      imageURL: `/img/${imageFile.filename}`, // Relative path to the uploaded image
+    };
+
+    // Access the database and collection
     const db = client.db("CollabSpacedb");
+    const collection = db.collection("Workspaces");
 
-    // Ensure that 'Workspaces' collection exists in your database
-    const collection = db.collection("Workspaces"); // Create or specify the collection for workspaces
+    // Insert the new workspace into the database
+    const result = await collection.insertOne(workspaceWithImage);
 
-    // Insert the workspace data into the 'Workspaces' collection
-    const result = await collection.insertOne(workspaceData);
-
-    // Send a success response with the result of the insert operation
-    res.status(201).json(result.ops[0]); // Send the inserted workspace data back to the client
+    // Send response with the inserted workspace data
+    res
+      .status(201)
+      .json({ message: "Workspace added successfully", data: result.ops[0] });
   } catch (error) {
     // If an error occurs, log it and send an error response
     console.error(error);
@@ -180,10 +210,14 @@ app.get("/workspaces/:id", async (req, res) => {
   try {
     const db = client.db("CollabSpacedb");
     const collection = db.collection("Workspaces");
-    const workspace = await collection.findOne({
-      _id: new ObjectId(id),
-    });
+    // Convert the provided ID string to a MongoDB ObjectId
+    const ObjectId = require("mongodb").ObjectId;
+    const objectId = new ObjectId(id);
 
+    // Retrieve the workspace by ID
+    const workspace = await collection.findOne({ _id: objectId });
+
+    // Check if workspace exists
     if (!workspace) {
       return res.status(404).json({ message: "Workspace not found" });
     }
@@ -203,10 +237,7 @@ app.put("/workspaces/:id", async (req, res) => {
   try {
     const db = client.db("CollabSpacedb");
     const collection = db.collection("Workspaces");
-    const result = await collection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updates }
-    );
+    const workspaces = await collection.find({}).toArray();
 
     if (result.matchedCount === 0) {
       return res.status(404).json({ message: "Workspace not found" });

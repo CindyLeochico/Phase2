@@ -1,10 +1,21 @@
 const { client } = require("../connect");
+const Workspace = require("../models/workspaceModel");
 
 // Add a new workspace
 exports.addWorkspace = async (req, res) => {
   try {
     // Extract workspace data from request body
-    const { propertyId, type, capacity, smoking, available, term, price } = req.body;
+    const {
+      propertyId,
+      type,
+      capacity,
+      smoking,
+      available,
+      term,
+      price,
+      contactInfo,
+    } = req.body;
+    const image = req.file; 
 
     // Create a new workspace object
     const newWorkspace = {
@@ -14,7 +25,12 @@ exports.addWorkspace = async (req, res) => {
       smoking,
       available,
       term,
-      price
+     price,
+      contactInfo,
+      image: {
+        data: image.buffer, // Access the buffer containing image data
+        contentType: image.mimetype // Access the mimetype of the image
+      }
     };
 
     // Access the database and collection

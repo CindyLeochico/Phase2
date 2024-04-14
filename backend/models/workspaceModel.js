@@ -5,50 +5,56 @@ const mongoose = require('mongoose');
 const workspaceSchema = new mongoose.Schema({
   propertyId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Property',
-    required: true
+    ref: "Property",
+    required: true,
   },
   workspaceId: {
     type: Number,
-    required: true
+    required: true,
   },
   type: {
     type: String,
-    required: true
+    required: true,
   },
   capacity: {
     type: Number,
-    required: true
+    required: true,
   },
   smoking: {
     type: String, // Assuming smoking status as string ("Yes" or "No")
     enum: ["Yes", "No"], // Restricting smoking status to predefined values
-    default: "No" // Default value set to "No" if not provided
+    default: "No", // Default value set to "No" if not provided
   },
   available: {
     type: Date,
-    required: true
+    required: true,
   },
   term: {
     type: String,
-    required: true
+    required: true,
   },
   price: {
     type: Number,
-    required: true
+    required: true,
   },
   contactInfo: {
     type: String,
-    required: true
+    required: true,
   },
   rating: {
     type: Number,
-    default: null // Assuming rating can be null initially
+    default: null,
   },
-  imageURL: {
-    type: String,
-    required: true
-  }
+  image: {
+    data: {
+      type: Buffer,
+      required: false,
+    },
+    contentType: {
+      type: String,
+      required: false,
+    },
+  },
 });
 
 const Workspace = mongoose.model('Workspace', workspaceSchema);
